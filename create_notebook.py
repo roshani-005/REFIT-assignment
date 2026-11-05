@@ -1,0 +1,232 @@
+"""
+Generates the refit_end_to_end_pipeline.ipynb notebook.
+"""
+
+import json
+from pathlib import Path
+
+notebook_data = {
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# REFIT Electrical Load Measurements: Data Cleaning and Appliance Disaggregation\n",
+    "**End-to-End Pipeline for Flock Energy Take-Home Assignment**\n",
+    "\n",
+    "This notebook provides a complete, reproducible execution flow covering:\n",
+    "1. **Section 1**: Basic Inspection and Cleaning of Raw Data (House 1)\n",
+    "2. **Section 2**: Exploratory Data Analysis of Washing Machine Usage Across 4 Homes (Houses 1, 2, 3, 20)\n",
+    "3. **Section 3**: Building & Evaluating an Appliance Disaggregation (NILM) Model\n",
+    "4. **Section 4**: Practical Implications & Utility Recommendations"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import sys\n",
+    "from pathlib import Path\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "# Set project root\n",
+    "PROJECT_ROOT = Path(\"..\").resolve()\n",
+    "if str(PROJECT_ROOT) not in sys.path:\n",
+    "    sys.path.insert(0, str(PROJECT_ROOT))\n",
+    "\n",
+    "from src.config import HOUSE_METADATA, RAW_DATA_DIR, CLEAN_DATA_DIR, OUTPUT_DIR, FIGURES_DIR\n",
+    "from src.data_inspection import run_inspection\n",
+    "from src.data_cleaning import clean_raw_house1\n",
+    "from src.eda_washing_machine import run_eda\n",
+    "from src.disaggregation_model import train_and_evaluate\n",
+    "\n",
+    "%matplotlib inline\n",
+    "plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')\n",
+    "print(\"Environment initialized successfully.\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. Basic Inspection and Cleaning of Raw Data (House 1)\n",
+    "We inspect timestamp monotonicity, sampling distributions, missing gaps, and impossible spikes/sensor codes."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Run data inspection\n",
+    "inspection_summary = run_inspection()\n",
+    "for k, v in inspection_summary.items():\n",
+    "    print(f\"{k}: {v['total_rows']:,} rows | Duplicates: {v['duplicate_timestamps']:,} | Outages: {v['gap_breakdown']['outages_gt_180s']}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Execute cleaning pipeline: sorting, deduplication, 1-min resampling, and outage flagging\n",
+    "cleaning_results = clean_raw_house1()\n",
+    "print(\"Cleaning results:\", cleaning_results)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Before vs. After Cleaning Plot\n",
+    "Below is the comparison of raw irregular readings vs cleaned 1-minute uniform data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from IPython.display import Image\n",
+    "Image(filename=str(FIGURES_DIR / \"sec1_raw_vs_cleaned.png\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Exploratory Analysis of Washing Machine Usage Across 4 Homes\n",
+    "We evaluate Houses 1, 2, 3, and 20 at 1-minute resolution, identifying active wash cycles using a multi-phase soak-bridging rule."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "eda_summary, house_dfs, house_cycles = run_eda()\n",
+    "df_summary = pd.DataFrame(eda_summary).T\n",
+    "df_summary[['occupancy', 'detected_cycles', 'cycles_per_week', 'zero_off_pct', 'mean_duration_mins', 'mean_energy_kwh']]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Plot (i): 24-Hour Whole-Home vs. Washing Machine Trace"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Image(filename=str(FIGURES_DIR / \"sec2_24h_trace.png\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Plot (ii): Zoomed-In Detected Washing Machine Cycles"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Image(filename=str(FIGURES_DIR / \"sec2_detected_cycles.png\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Plot (iii): Cross-House Characteristic Comparison"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Image(filename=str(FIGURES_DIR / \"sec2_cross_house_comparison.png\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Plot (iv): Temporal Usage Patterns (Diurnal & Day-of-Week)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Image(filename=str(FIGURES_DIR / \"sec2_temporal_patterns.png\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 3. Disaggregation Model Training & Evaluation\n",
+    "We train a Gradient Boosting model with temporal window features on aggregate power and evaluate against baselines."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model_metrics, eval_table = train_and_evaluate()\n",
+    "eval_table"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Disaggregation Evaluation: Actual vs. Predicted Plot"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Image(filename=str(FIGURES_DIR / \"sec3_actual_vs_predicted.png\"))"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
+
+out_path = Path("C:/Users/yrosh/.gemini/antigravity/scratch/refit_disaggregation/notebooks/refit_end_to_end_pipeline.ipynb")
+with open(out_path, "w", encoding="utf-8") as f:
+    json.dump(notebook_data, f, indent=2)
+print("Notebook created successfully at", out_path)

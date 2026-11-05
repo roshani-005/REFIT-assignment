@@ -1,0 +1,6 @@
+{
+  "false_positive_minutes": 639,
+  "false_negative_minutes": 12,
+  "fp_agg_mean_watts": 3052.7320320961667,
+  "fn_agg_mean_watts": 2892.0226851851844
+}

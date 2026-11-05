@@ -1,0 +1,32 @@
+{
+  "always_off": {
+    "mae_overall_w": 10.61,
+    "mae_active_w": 520.83,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "total_true_energy_kwh": 21.3,
+    "total_pred_energy_kwh": 0.0,
+    "rete_energy_error_pct": 100.0
+  },
+  "profile_baseline": {
+    "mae_overall_w": 17.64,
+    "mae_active_w": 505.34,
+    "precision": 0.0435,
+    "recall": 0.3275,
+    "f1_score": 0.0769,
+    "total_true_energy_kwh": 21.3,
+    "total_pred_energy_kwh": 15.47,
+    "rete_energy_error_pct": 27.38
+  },
+  "primary_model": {
+    "mae_overall_w": 8.81,
+    "mae_active_w": 180.51,
+    "precision": 0.2843,
+    "recall": 0.9448,
+    "f1_score": 0.4371,
+    "total_true_energy_kwh": 21.3,
+    "total_pred_energy_kwh": 25.55,
+    "rete_energy_error_pct": 19.95
+  }
+}

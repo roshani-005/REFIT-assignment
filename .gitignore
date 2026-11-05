@@ -1,0 +1,11 @@
+# Data directories containing large CSVs
+data/raw/
+data/cleaned/
+*.parquet
+*.csv
+.cache/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+venv/
+.env

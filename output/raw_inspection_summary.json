@@ -1,0 +1,194 @@
+{
+  "RAW_House1_Part1.csv": {
+    "file": "RAW_House1_Part1.csv",
+    "total_rows": 4377877,
+    "start_time": "2013-10-09 14:06:17",
+    "end_time": "2014-10-01 01:27:07",
+    "nat_count": 0,
+    "backwards_steps": 1,
+    "duplicate_timestamps": 1004404,
+    "zero_time_steps": 1003950,
+    "dt_stats": {
+      "mean_seconds": 9.129677452818305,
+      "median_seconds": 7.0,
+      "std_seconds": 1972.193399414083,
+      "p50_seconds": 7.0,
+      "p90_seconds": 15.0,
+      "p99_seconds": 16.0,
+      "max_gap_hours": 998.4483333333334
+    },
+    "gap_breakdown": {
+      "normal_intervals_le_10s": 1904024,
+      "short_gaps_10s_to_180s": 1469439,
+      "outages_gt_180s": 462
+    },
+    "power_channel_stats": {
+      "Aggregate": {
+        "nan_count": 0,
+        "zero_count": 12,
+        "negative_count": 0,
+        "max_watts": 24000.0,
+        "outliers_above_threshold": 82
+      },
+      "Appliance1": {
+        "nan_count": 0,
+        "zero_count": 3325660,
+        "negative_count": 0,
+        "max_watts": 69629.0,
+        "outliers_above_threshold": 662
+      },
+      "Appliance2": {
+        "nan_count": 0,
+        "zero_count": 2783673,
+        "negative_count": 0,
+        "max_watts": 98301.0,
+        "outliers_above_threshold": 18
+      },
+      "Appliance3": {
+        "nan_count": 0,
+        "zero_count": 2624441,
+        "negative_count": 0,
+        "max_watts": 32751.0,
+        "outliers_above_threshold": 38
+      },
+      "Appliance4": {
+        "nan_count": 0,
+        "zero_count": 4346080,
+        "negative_count": 0,
+        "max_watts": 98301.0,
+        "outliers_above_threshold": 2014
+      },
+      "Appliance5": {
+        "nan_count": 0,
+        "zero_count": 4284667,
+        "negative_count": 0,
+        "max_watts": 32767.0,
+        "outliers_above_threshold": 156
+      },
+      "Appliance6": {
+        "nan_count": 0,
+        "zero_count": 4337526,
+        "negative_count": 0,
+        "max_watts": 14336.0,
+        "outliers_above_threshold": 24
+      },
+      "Appliance7": {
+        "nan_count": 0,
+        "zero_count": 3970654,
+        "negative_count": 0,
+        "max_watts": 98299.0,
+        "outliers_above_threshold": 3
+      },
+      "Appliance8": {
+        "nan_count": 0,
+        "zero_count": 3547878,
+        "negative_count": 0,
+        "max_watts": 65549.0,
+        "outliers_above_threshold": 88
+      },
+      "Appliance9": {
+        "nan_count": 0,
+        "zero_count": 874,
+        "negative_count": 0,
+        "max_watts": 65535.0,
+        "outliers_above_threshold": 35
+      }
+    }
+  },
+  "RAW_House1_Part2.csv": {
+    "file": "RAW_House1_Part2.csv",
+    "total_rows": 4140886,
+    "start_time": "2014-06-27 21:57:50",
+    "end_time": "2015-07-10 11:56:32",
+    "nat_count": 0,
+    "backwards_steps": 0,
+    "duplicate_timestamps": 14755,
+    "zero_time_steps": 14755,
+    "dt_stats": {
+      "mean_seconds": 7.906469985191936,
+      "median_seconds": 7.0,
+      "std_seconds": 583.7366153815935,
+      "p50_seconds": 7.0,
+      "p90_seconds": 8.0,
+      "p99_seconds": 9.0,
+      "max_gap_hours": 207.56972222222223
+    },
+    "gap_breakdown": {
+      "normal_intervals_le_10s": 4098393,
+      "short_gaps_10s_to_180s": 27646,
+      "outages_gt_180s": 91
+    },
+    "power_channel_stats": {
+      "Aggregate": {
+        "nan_count": 188973,
+        "zero_count": 0,
+        "negative_count": 0,
+        "max_watts": 29159.0,
+        "outliers_above_threshold": 104
+      },
+      "Appliance1": {
+        "nan_count": 437890,
+        "zero_count": 2818957,
+        "negative_count": 0,
+        "max_watts": 76677.0,
+        "outliers_above_threshold": 184
+      },
+      "Appliance2": {
+        "nan_count": 459468,
+        "zero_count": 2402721,
+        "negative_count": 0,
+        "max_watts": 66685.0,
+        "outliers_above_threshold": 22
+      },
+      "Appliance3": {
+        "nan_count": 311961,
+        "zero_count": 2242905,
+        "negative_count": 0,
+        "max_watts": 73725.0,
+        "outliers_above_threshold": 80
+      },
+      "Appliance4": {
+        "nan_count": 510963,
+        "zero_count": 3625381,
+        "negative_count": 0,
+        "max_watts": 98301.0,
+        "outliers_above_threshold": 71
+      },
+      "Appliance5": {
+        "nan_count": 497223,
+        "zero_count": 3559281,
+        "negative_count": 0,
+        "max_watts": 73725.0,
+        "outliers_above_threshold": 65
+      },
+      "Appliance6": {
+        "nan_count": 342337,
+        "zero_count": 3763375,
+        "negative_count": 0,
+        "max_watts": 37610.0,
+        "outliers_above_threshold": 12
+      },
+      "Appliance7": {
+        "nan_count": 232752,
+        "zero_count": 3427383,
+        "negative_count": 0,
+        "max_watts": 73725.0,
+        "outliers_above_threshold": 371
+      },
+      "Appliance8": {
+        "nan_count": 390705,
+        "zero_count": 3041301,
+        "negative_count": 0,
+        "max_watts": 98301.0,
+        "outliers_above_threshold": 91
+      },
+      "Appliance9": {
+        "nan_count": 1911811,
+        "zero_count": 742,
+        "negative_count": 0,
+        "max_watts": 32737.0,
+        "outliers_above_threshold": 15
+      }
+    }
+  }
+}
