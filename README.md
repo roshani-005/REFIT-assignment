@@ -80,12 +80,14 @@ refit_disaggregation/
 ```bash
 # Clone the repository
 git clone https://github.com/roshani-005/REFIT-assignment.git
-cd refit_disaggregation
+cd REFIT-assignment
 
 # Create and activate virtual environment
 python -m venv venv
 # On Windows (PowerShell):
 .\venv\Scripts\Activate.ps1
+# On Windows (CMD):
+venv\Scripts\activate.bat
 # On Linux/macOS:
 source venv/bin/activate
 
