@@ -1,16 +1,15 @@
 """
 Exploratory Data Analysis (EDA) of Washing Machine Usage across 4 REFIT Homes
-(House 1, House 2, House 3, House 20)
+(House 1, House 2, House 3, House 20) using OFFICIAL CLEANED data.
 
-Requirements addressed:
-1. Availability and data quality (date range, missing intervals, zero/off time, cycle count)
-2. Cycle detection algorithm (active threshold, soak merge, duration/energy filters)
-3. Usage patterns by hour of day and day of week
-4. Cross-household comparison of cycle characteristics (duration, peak power, energy)
-5. Three mandatory plots:
-   - (i) 24-hour aggregate + washing-machine trace
-   - (ii) Zoomed detected washing machine cycles with phases
-   - (iii) Cross-house comparison of cycle metrics
+Key updates:
+1. Uses shared loader load_cleaned_house() from src.utils
+2. Verifies washing machine channel per house against CLEAN_READ_ME_081116.txt
+3. Fixes Plot (i) to use a day with a REAL ACTIVE wash cycle (2015-02-23)
+4. Fixes Plot (ii) annotation box position to avoid overlapping the legend
+5. Accurately describes heating dynamics (pulsed ~3-5 min bursts, not single 12 min)
+6. Computes exact diurnal/weekday statistics directly from data
+7. Generates cycle-detection sensitivity analysis table (threshold 10/20/50W x gap 5/8/12min)
 """
 
 from pathlib import Path
@@ -23,7 +22,6 @@ import numpy as np
 import pandas as pd
 
 from src.config import (
-    CLEAN_DATA_DIR,
     OUTPUT_DIR,
     FIGURES_DIR,
     HOUSE_METADATA,
@@ -33,6 +31,7 @@ from src.config import (
     WM_CYCLE_MIN_PEAK_WATTS,
     WM_CYCLE_MIN_ENERGY_KWH,
 )
+from src.utils import load_cleaned_house
 
 os.environ["MPLCONFIGDIR"] = str(OUTPUT_DIR / ".cache")
 
@@ -46,19 +45,6 @@ def detect_cycles(series_1min: pd.Series,
     """
     Detects washing machine cycles using a finite-state machine with soak-phase bridging.
     """
-    # Boolean active mask (handle NaNs as inactive)
-    is_active = (series_1min >= power_threshold).fillna(False).astype(int)
-    
-    # Bridge short dips (soak / tumble pauses <= max_gap_minutes)
-    # Using forward-fill of running active state within max_gap
-    bridged = is_active.copy()
-    diff = bridged.diff()
-    
-    # Identify gaps
-    starts = series_1min.index[diff == 1]
-    ends = series_1min.index[diff == -1]
-    
-    # Simple block labeling
     blocks = []
     in_cycle = False
     cycle_start = None
@@ -73,7 +59,6 @@ def detect_cycles(series_1min: pd.Series,
         
         if np.isnan(val):
             if in_cycle and (t - last_active_time).total_seconds() / 60.0 > max_gap_minutes:
-                # Close cycle up to last_active_time
                 blocks.append((cycle_start, last_active_time))
                 in_cycle = False
             continue
@@ -85,17 +70,14 @@ def detect_cycles(series_1min: pd.Series,
             last_active_time = t
         else:
             if in_cycle:
-                # Check how long it has been below threshold
                 gap_mins = (t - last_active_time).total_seconds() / 60.0
                 if gap_mins > max_gap_minutes:
-                    # Cycle has ended
                     blocks.append((cycle_start, last_active_time))
                     in_cycle = False
                     
     if in_cycle and last_active_time is not None:
         blocks.append((cycle_start, last_active_time))
         
-    # Filter candidate blocks by duration, peak power, and energy
     valid_cycles = []
     for start, end in blocks:
         duration_mins = (end - start).total_seconds() / 60.0 + 1.0
@@ -104,7 +86,6 @@ def detect_cycles(series_1min: pd.Series,
             
         cycle_slice = series_1min.loc[start:end]
         peak_w = float(cycle_slice.max())
-        # Energy in kWh: sum(W * 1/60 hr) / 1000 = sum(W) / 60000
         energy_kwh = float(cycle_slice.sum() / 60000.0)
         
         if peak_w >= min_peak_watts or energy_kwh >= min_energy_kwh:
@@ -122,35 +103,35 @@ def detect_cycles(series_1min: pd.Series,
     return valid_cycles
 
 
-def load_and_resample_house(house_id: int):
-    filename = f"CLEAN_House{house_id}.csv"
-    path = CLEAN_DATA_DIR / filename
-    print(f"\nLoading {filename}...")
+def compute_cycle_sensitivity(house_dfs):
+    """
+    Computes cycle count sensitivity across power thresholds (10, 20, 50 W)
+    and bridging gaps (5, 8, 12 min).
+    """
+    print("\nRunning Cycle Detection Sensitivity Analysis...")
+    thresholds = [10.0, 20.0, 50.0]
+    gaps = [5, 8, 12]
+    sensitivity_results = {}
     
-    meta = HOUSE_METADATA[house_id]
-    wm_col = meta["washing_machine_col"]
-    
-    # Read only needed columns to be fast and memory efficient
-    cols_to_read = ['Time', 'Aggregate', wm_col, 'Issues']
-    df = pd.read_csv(path, usecols=cols_to_read)
-    
-    df['DateTime'] = pd.to_datetime(df['Time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
-    df = df.dropna(subset=['DateTime']).sort_values('DateTime')
-    
-    # Discard rows where Issues == 1 per REFIT documentation (sub-meter sum > aggregate)
-    if 'Issues' in df.columns:
-        valid_mask = (df['Issues'] == 0)
-        print(f"House {house_id}: Filtered out {(~valid_mask).sum():,} rows where Issues == 1.")
-        df = df[valid_mask]
+    for hid, df in house_dfs.items():
+        wm_col = HOUSE_METADATA[hid]["washing_machine_col"]
+        series = df[wm_col]
+        h_res = {}
+        for th in thresholds:
+            for g in gaps:
+                key = f"th_{int(th)}W_gap_{g}m"
+                detected = detect_cycles(
+                    series,
+                    power_threshold=th,
+                    max_gap_minutes=g,
+                    min_duration_minutes=WM_CYCLE_MIN_DURATION_MINUTES,
+                    min_peak_watts=WM_CYCLE_MIN_PEAK_WATTS,
+                    min_energy_kwh=WM_CYCLE_MIN_ENERGY_KWH
+                )
+                h_res[key] = len(detected)
+        sensitivity_results[f"House_{hid}"] = h_res
         
-    # Groupby DateTime to handle any remaining duplicate seconds, then resample to 1min
-    df_sec = df.groupby('DateTime')[['Aggregate', wm_col]].mean()
-    df_1min = df_sec.resample('1min').mean()
-    
-    # Forward fill very short gaps (<= 2 mins) in cleaned data
-    df_1min = df_1min.interpolate(method='time', limit=2)
-    
-    return df_1min, wm_col
+    return sensitivity_results
 
 
 def run_eda():
@@ -161,36 +142,36 @@ def run_eda():
     
     for hid in houses:
         meta = HOUSE_METADATA[hid]
-        df_1min, wm_col = load_and_resample_house(hid)
+        df_1min, wm_col = load_cleaned_house(hid)
         house_dfs[hid] = df_1min
         
-        # Total intervals
         total_mins = len(df_1min)
         start_date = str(df_1min.index[0])
         end_date = str(df_1min.index[-1])
         days = (df_1min.index[-1] - df_1min.index[0]).total_seconds() / 86400.0
         
-        # Missing intervals
+        # Missing minutes (original + unfillable)
         missing_mins = int(df_1min[wm_col].isna().sum())
         missing_pct = float(missing_mins / total_mins * 100.0)
         
         # Zero / Off / Standby time (Power < 20 W)
-        off_mins = int((df_1min[wm_col] < WM_ACTIVE_THRESHOLD_WATTS).sum())
-        off_pct = float(off_mins / (total_mins - missing_mins) * 100.0)
+        valid_series = df_1min[wm_col].dropna()
+        off_mins = int((valid_series < WM_ACTIVE_THRESHOLD_WATTS).sum())
+        off_pct = float(off_mins / len(valid_series) * 100.0) if len(valid_series) > 0 else 0.0
         
         # Detect cycles
-        print(f"Detecting washing machine cycles for House {hid}...")
+        print(f"Detecting washing machine cycles for House {hid} (Ch: {wm_col})...")
         cycles = detect_cycles(df_1min[wm_col])
         house_cycles[hid] = cycles
         num_cycles = len(cycles)
         
-        # Cycle characteristics
         durations = [c['duration_minutes'] for c in cycles]
         energies = [c['energy_kwh'] for c in cycles]
         peaks = [c['peak_watts'] for c in cycles]
         
         eda_summary[f"House_{hid}"] = {
             "house_id": hid,
+            "channel": wm_col,
             "occupancy": meta["occupancy"],
             "type": meta["type"],
             "wm_model": meta["wm_model"],
@@ -211,9 +192,46 @@ def run_eda():
             "total_washing_energy_kwh": round(float(np.sum(energies)), 1) if energies else 0,
         }
         
-        print(f"  -> House {hid}: {num_cycles} cycles detected across {days:.1f} days.")
-        print(f"     Off/standby time: {off_pct:.1f}%, Mean cycle energy: {eda_summary[f'House_{hid}']['mean_energy_kwh']} kWh, Mean duration: {eda_summary[f'House_{hid}']['mean_duration_mins']} mins")
-        
+    # Aggregate statistics across all 4 houses
+    all_cycles = []
+    for hid in houses:
+        for c in house_cycles[hid]:
+            c_copy = dict(c)
+            c_copy['house_id'] = hid
+            all_cycles.append(c_copy)
+            
+    df_all_cycles = pd.DataFrame(all_cycles)
+    df_all_cycles['start_dt'] = pd.to_datetime(df_all_cycles['start'])
+    
+    # Exact weekday counts and shares
+    dow_counts = df_all_cycles['start_dt'].dt.day_name().value_counts().to_dict()
+    dow_shares = (df_all_cycles['start_dt'].dt.day_name().value_counts(normalize=True) * 100.0).round(2).to_dict()
+    
+    # Exact hour counts and shares
+    hour_counts = df_all_cycles['hour'].value_counts().to_dict()
+    morning_count = int(df_all_cycles['hour'].between(8, 11).sum())
+    morning_share = round(float(morning_count / len(df_all_cycles) * 100.0), 2)
+    
+    # Overnight washing in House 1 (00:00 to 06:00)
+    h1_cycles = [c for c in all_cycles if c['house_id'] == 1]
+    h1_overnight = [c for c in h1_cycles if 0 <= c['hour'] < 6]
+    h1_overnight_share = round(float(len(h1_overnight) / len(h1_cycles) * 100.0), 2) if h1_cycles else 0.0
+    
+    eda_summary["aggregate_patterns"] = {
+        "total_cycles_4_houses": len(df_all_cycles),
+        "weekday_counts": dow_counts,
+        "weekday_percentages": dow_shares,
+        "highest_day": max(dow_counts, key=dow_counts.get),
+        "lowest_day": min(dow_counts, key=dow_counts.get),
+        "morning_08_to_12_count": morning_count,
+        "morning_08_to_12_pct": morning_share,
+        "house1_overnight_00_to_06_count": len(h1_overnight),
+        "house1_overnight_00_to_06_pct": h1_overnight_share,
+    }
+    
+    # Sensitivity analysis
+    eda_summary["sensitivity_analysis"] = compute_cycle_sensitivity(house_dfs)
+    
     # Save JSON summary
     summary_path = OUTPUT_DIR / "washing_machine_eda_summary.json"
     with open(summary_path, "w") as f:
@@ -227,29 +245,27 @@ def run_eda():
 
 
 def generate_all_eda_plots(house_dfs, house_cycles, eda_summary):
-    print("\n--- Generating Publication-Grade Visualizations for Section 2 ---")
+    print("\n--- Generating Clean Figures for Section 2 ---")
     
     # -------------------------------------------------------------
     # Plot (i): 24-hour aggregate + washing machine trace
+    # Fixed: Uses 2015-02-23 (REAL active wash day in House 1, date in title)
     # -------------------------------------------------------------
-    print("Generating Plot (i): 24-hour aggregate + washing-machine trace...")
+    print("Generating Plot (i): 24-hour trace with genuine active wash day...")
     h1_df = house_dfs[1]
     wm_col1 = HOUSE_METADATA[1]["washing_machine_col"]
     
-    # Find a clean 24-hour period in House 1 with an active wash cycle
-    # E.g. November 17, 2013 (active wash cycle during day)
-    day_start = pd.Timestamp("2013-11-17 00:00:00")
-    day_end = pd.Timestamp("2013-11-18 00:00:00")
+    # Active day: 2015-02-23
+    day_start = pd.Timestamp("2015-02-23 00:00:00")
+    day_end = pd.Timestamp("2015-02-23 23:59:00")
     slice_24h = h1_df.loc[day_start:day_end]
     
     fig, ax = plt.subplots(figsize=(13, 6))
     ax.plot(slice_24h.index, slice_24h['Aggregate'], label='Household Aggregate Load (W)', color='#1f77b4', linewidth=1.2, alpha=0.85)
     ax.plot(slice_24h.index, slice_24h[wm_col1], label='Washing Machine (Beko WMC6140) (W)', color='#d62728', linewidth=1.6)
-    
-    # Highlight the washing machine region
     ax.fill_between(slice_24h.index, 0, slice_24h[wm_col1], color='#d62728', alpha=0.25, label='Washing Machine Active Energy')
     
-    ax.set_title("Plot (i): Representative 24-Hour Electricity Load Trace (House 1 - 17 Nov 2013)", fontsize=13, fontweight='bold')
+    ax.set_title("Plot (i): Representative 24-Hour Electricity Load Trace (House 1 - 23 Feb 2015)", fontsize=13, fontweight='bold')
     ax.set_xlabel("Time of Day", fontsize=11, fontweight='bold')
     ax.set_ylabel("Active Power (Watts)", fontsize=11, fontweight='bold')
     ax.grid(True, linestyle='--', alpha=0.5)
@@ -261,46 +277,46 @@ def generate_all_eda_plots(house_dfs, house_cycles, eda_summary):
     print(f"Saved: {fig1_path}")
     
     # -------------------------------------------------------------
-    # Plot (ii): Zoomed-in detected washing-machine cycles
+    # Plot (ii): Zoomed-in detected washing-machine cycle
+    # Fixed: Repositioned annotation to avoid overlapping legend
+    # Accurately describes pulsed heating (~3-5 mins each)
     # -------------------------------------------------------------
-    print("Generating Plot (ii): Zoomed detected washing machine cycles...")
-    # Find a cycle with clear multi-stage signature in House 1 or House 2
+    print("Generating Plot (ii): Zoomed detected cycle with clean annotation...")
     h1_cycles = house_cycles[1]
-    # Pick a high-energy cycle
     chosen_cycle = None
     for c in h1_cycles:
         if 0.6 <= c['energy_kwh'] <= 1.4 and 60 <= c['duration_minutes'] <= 140:
             chosen_cycle = c
             break
-    if chosen_cycle is None and h1_cycles:
+    if chosen_cycle is None:
         chosen_cycle = h1_cycles[0]
         
-    c_start = pd.Timestamp(chosen_cycle['start']) - pd.Timedelta(minutes=15)
-    c_end = pd.Timestamp(chosen_cycle['end']) + pd.Timedelta(minutes=15)
+    c_start = pd.Timestamp(chosen_cycle['start']) - pd.Timedelta(minutes=10)
+    c_end = pd.Timestamp(chosen_cycle['end']) + pd.Timedelta(minutes=10)
     cycle_slice = h1_df.loc[c_start:c_end]
     
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(cycle_slice.index, cycle_slice[wm_col1], color='#d62728', linewidth=2.0, label='Washing Machine Load (W)')
     
-    # Mark detected boundaries
     det_start = pd.Timestamp(chosen_cycle['start'])
     det_end = pd.Timestamp(chosen_cycle['end'])
     ax.axvline(det_start, color='green', linestyle='--', linewidth=1.8, label=f'Cycle Start ({det_start.strftime("%H:%M")})')
     ax.axvline(det_end, color='purple', linestyle='--', linewidth=1.8, label=f'Cycle End ({det_end.strftime("%H:%M")})')
     
-    # Annotate stages (Water heating, tumbling, spin extraction)
+    # Position annotation in the center-left to strictly avoid the upper-right legend
     peak_time = cycle_slice[wm_col1].idxmax()
     peak_val = cycle_slice[wm_col1].max()
-    ax.annotate('1. Water Heating Stage\n(~2000-2400W spike)',
+    ax.annotate('Pulsed Water Heating\n(~2200-2400 W, ~3-5 min bursts)',
                 xy=(peak_time, peak_val),
-                xytext=(peak_time + pd.Timedelta(minutes=8), peak_val * 0.88),
-                arrowprops=dict(facecolor='black', shrink=0.08, width=1.5, headwidth=8),
-                fontsize=9.5, fontweight='bold', bbox=dict(boxstyle="round,pad=0.3", fc="yellow", alpha=0.3))
+                xytext=(c_start + pd.Timedelta(minutes=5), peak_val * 0.75),
+                arrowprops=dict(facecolor='black', shrink=0.08, width=1.5, headwidth=7),
+                fontsize=9.5, fontweight='bold', bbox=dict(boxstyle="round,pad=0.3", fc="#ffffcc", ec="gray", alpha=0.85))
                 
-    ax.set_title(f"Plot (ii): Anatomy of a Detected Wash Cycle (House 1)\nDuration: {chosen_cycle['duration_minutes']:.0f} mins | Peak: {chosen_cycle['peak_watts']:.0f} W | Energy: {chosen_cycle['energy_kwh']:.2f} kWh",
+    ax.set_title(f"Plot (ii): Detected Wash Cycle Anatomy (House 1 - {det_start.strftime('%d %b %Y')})\nDuration: {chosen_cycle['duration_minutes']:.0f} min | Peak: {chosen_cycle['peak_watts']:.0f} W | Energy: {chosen_cycle['energy_kwh']:.2f} kWh",
                  fontsize=12, fontweight='bold')
     ax.set_xlabel("Time", fontsize=11, fontweight='bold')
     ax.set_ylabel("Power (Watts)", fontsize=11, fontweight='bold')
+    ax.set_ylim(-50, max(peak_val * 1.25, 2600))
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.legend(loc='upper right', frameon=True)
     plt.tight_layout()
@@ -315,37 +331,32 @@ def generate_all_eda_plots(house_dfs, house_cycles, eda_summary):
     print("Generating Plot (iii): Cross-house comparison...")
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     
-    house_labels = [f"House {hid}\n(occ={HOUSE_METADATA[hid]['occupancy']})" for hid in [1, 2, 3, 20]]
+    house_labels = [f"House {hid}\n({HOUSE_METADATA[hid]['occupancy']} occ)" for hid in [1, 2, 3, 20]]
     dur_data = [[c['duration_minutes'] for c in house_cycles[hid]] for hid in [1, 2, 3, 20]]
     nrg_data = [[c['energy_kwh'] for c in house_cycles[hid]] for hid in [1, 2, 3, 20]]
     peak_data = [[c['peak_watts'] for c in house_cycles[hid]] for hid in [1, 2, 3, 20]]
-    
-    # Colors
     box_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#9467bd']
     
-    # Subplot 1: Energy per cycle
-    bp1 = axes[0].boxplot(nrg_data, labels=house_labels, patch_artist=True, showmeans=True)
+    bp1 = axes[0].boxplot(nrg_data, tick_labels=house_labels, patch_artist=True, showmeans=True)
     for patch, col in zip(bp1['boxes'], box_colors):
         patch.set_facecolor(col)
-        patch.set_alpha(0.6)
+        patch.set_alpha(0.65)
     axes[0].set_title("Energy per Cycle (kWh)", fontsize=12, fontweight='bold')
     axes[0].set_ylabel("Energy (kWh)", fontsize=11, fontweight='bold')
     axes[0].grid(True, linestyle='--', alpha=0.4)
     
-    # Subplot 2: Duration
-    bp2 = axes[1].boxplot(dur_data, labels=house_labels, patch_artist=True, showmeans=True)
+    bp2 = axes[1].boxplot(dur_data, tick_labels=house_labels, patch_artist=True, showmeans=True)
     for patch, col in zip(bp2['boxes'], box_colors):
         patch.set_facecolor(col)
-        patch.set_alpha(0.6)
+        patch.set_alpha(0.65)
     axes[1].set_title("Cycle Duration (Minutes)", fontsize=12, fontweight='bold')
     axes[1].set_ylabel("Minutes", fontsize=11, fontweight='bold')
     axes[1].grid(True, linestyle='--', alpha=0.4)
     
-    # Subplot 3: Peak Power
-    bp3 = axes[2].boxplot(peak_data, labels=house_labels, patch_artist=True, showmeans=True)
+    bp3 = axes[2].boxplot(peak_data, tick_labels=house_labels, patch_artist=True, showmeans=True)
     for patch, col in zip(bp3['boxes'], box_colors):
         patch.set_facecolor(col)
-        patch.set_alpha(0.6)
+        patch.set_alpha(0.65)
     axes[2].set_title("Peak Power per Cycle (Watts)", fontsize=12, fontweight='bold')
     axes[2].set_ylabel("Watts", fontsize=11, fontweight='bold')
     axes[2].grid(True, linestyle='--', alpha=0.4)
@@ -360,7 +371,7 @@ def generate_all_eda_plots(house_dfs, house_cycles, eda_summary):
     # -------------------------------------------------------------
     # Plot (iv): Temporal Patterns (Hour of day & Day of week)
     # -------------------------------------------------------------
-    print("Generating Plot (iv): Temporal usage patterns...")
+    print("Generating Plot (iv): Temporal patterns...")
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
     all_cycles = []
@@ -369,9 +380,7 @@ def generate_all_eda_plots(house_dfs, house_cycles, eda_summary):
             c_copy = dict(c)
             c_copy['house'] = f"House {hid}"
             all_cycles.append(c_copy)
-    df_all_cycles = pd.DataFrame(all_cycles)
-    
-    # 1. Hour of day
+            
     hours = np.arange(24)
     hour_counts = {f"House {hid}": [0]*24 for hid in [1, 2, 3, 20]}
     for c in all_cycles:
@@ -390,7 +399,6 @@ def generate_all_eda_plots(house_dfs, house_cycles, eda_summary):
     axes[0].grid(True, linestyle='--', alpha=0.4)
     axes[0].legend(loc='upper left', frameon=True)
     
-    # 2. Day of week
     dow_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     dow_counts = {f"House {hid}": [0]*7 for hid in [1, 2, 3, 20]}
     for c in all_cycles:
