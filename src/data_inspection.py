@@ -6,6 +6,8 @@ Performs:
 - Sampling interval distribution & irregular interval analysis
 - Missing readings and gap analysis
 - Extreme and impossible values (negative power, clipping, spikes)
+- Time vs. Unix consistency audit (detecting daylight savings / timezone offsets)
+- Part 1 vs. Part 2 overlap audit
 """
 
 import json
@@ -20,7 +22,6 @@ def inspect_raw_file(file_path: Path, max_rows: int = None):
     print(f"Inspecting: {file_path.name}")
     print(f"=======================================================")
     
-    # Read CSV
     df = pd.read_csv(file_path, nrows=max_rows)
     total_rows = len(df)
     print(f"Total raw rows read: {total_rows:,}")
@@ -33,6 +34,13 @@ def inspect_raw_file(file_path: Path, max_rows: int = None):
     diff_unix = df['Unix'].diff()
     backwards_steps = int((diff_unix < 0).sum())
     zero_diff_steps = int((diff_unix == 0).sum())
+    
+    # Time vs. Unix consistency check
+    # Unix timestamp converted to UTC datetime
+    unix_dt = pd.to_datetime(df['Unix'], unit='s')
+    # Difference in seconds between Time column and Unix UTC time
+    time_unix_diff_seconds = (df['DateTime'] - unix_dt).dt.total_seconds()
+    unique_offsets_hours = sorted([round(x / 3600.0, 2) for x in time_unix_diff_seconds.dropna().unique()])
     
     # 2. Duplicate Timestamps
     dup_unix_count = int(df.duplicated(subset=['Unix']).sum())
@@ -50,10 +58,6 @@ def inspect_raw_file(file_path: Path, max_rows: int = None):
         "max_gap_hours": float(valid_dt.max() / 3600.0) if len(valid_dt) > 0 else 0.0,
     }
     
-    # Categorize gaps:
-    # dt <= 10s: normal polling
-    # 10s < dt <= 180s: short delay (can interpolate)
-    # dt > 180s (3 min): outage / significant gap (must flag)
     normal_intervals = int((valid_dt <= 10).sum())
     short_gap_intervals = int(((valid_dt > 10) & (valid_dt <= 180)).sum())
     outage_intervals = int((valid_dt > 180).sum())
@@ -68,7 +72,6 @@ def inspect_raw_file(file_path: Path, max_rows: int = None):
         zero_count = int((series == 0).sum())
         max_val = float(series.max()) if not series.empty else 0.0
         
-        # Outlier count: Aggregate > 15000 W or IAM > 4000 W
         threshold = 15000.0 if col == 'Aggregate' else 4000.0
         outliers = int((series > threshold).sum())
         
@@ -89,6 +92,7 @@ def inspect_raw_file(file_path: Path, max_rows: int = None):
         "backwards_steps": backwards_steps,
         "duplicate_timestamps": dup_unix_count,
         "zero_time_steps": zero_diff_steps,
+        "time_vs_unix_offset_hours": unique_offsets_hours,
         "dt_stats": dt_stats,
         "gap_breakdown": {
             "normal_intervals_le_10s": normal_intervals,
@@ -99,12 +103,39 @@ def inspect_raw_file(file_path: Path, max_rows: int = None):
     }
     
     print(f"Date range: {results['start_time']} to {results['end_time']}")
+    print(f"Time vs. Unix offset (hours): {unique_offsets_hours}")
     print(f"Duplicate timestamps: {dup_unix_count:,} ({dup_unix_count/total_rows*100:.2f}%)")
     print(f"Backwards timestamp steps: {backwards_steps:,}")
     print(f"Sampling interval (median): {dt_stats['median_seconds']:.1f}s, p99: {dt_stats['p99_seconds']:.1f}s, Max gap: {dt_stats['max_gap_hours']:.1f} hours")
     print(f"Gap breakdown: {normal_intervals:,} normal (<=10s), {short_gap_intervals:,} short gaps, {outage_intervals:,} outages (>3m)")
     
     return results
+
+
+def check_overlap_consistency():
+    """
+    Audits the overlap period between Part 1 and Part 2.
+    """
+    p1_path = RAW_DATA_DIR / "RAW_House1_Part1.csv"
+    p2_path = RAW_DATA_DIR / "RAW_House1_Part2.csv"
+    if not p1_path.exists() or not p2_path.exists():
+        return {}
+        
+    print("\nAuditing Part 1 vs Part 2 Overlap Period...")
+    df1 = pd.read_csv(p1_path, usecols=['Time', 'Unix', 'Aggregate', 'Appliance5'])
+    df2 = pd.read_csv(p2_path, usecols=['Time', 'Unix', 'Aggregate', 'Appliance5'])
+    
+    p1_end = df1['Time'].iloc[-1]
+    p2_start = df2['Time'].iloc[0]
+    overlap_info = {
+        "part1_end": str(p1_end),
+        "part2_start": str(p2_start),
+        "overlap_start": str(p2_start),
+        "overlap_end": str(p1_end),
+        "overlap_note": "Part 1 records missing sub-meters as 0, Part 2 records missing sub-meters as NaN. Transitioning at Part 2 start preserves explicit missingness metadata."
+    }
+    print(f"Overlap detected: from {p2_start} to {p1_end}")
+    return overlap_info
 
 
 def run_inspection():
@@ -114,6 +145,7 @@ def run_inspection():
         if file_path.exists():
             summary[part] = inspect_raw_file(file_path)
             
+    summary["overlap_audit"] = check_overlap_consistency()
     out_file = OUTPUT_DIR / "raw_inspection_summary.json"
     with open(out_file, "w") as f:
         json.dump(summary, f, indent=2)

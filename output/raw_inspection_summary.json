@@ -8,6 +8,10 @@
     "backwards_steps": 1,
     "duplicate_timestamps": 1004404,
     "zero_time_steps": 1003950,
+    "time_vs_unix_offset_hours": [
+      0.0,
+      0.0
+    ],
     "dt_stats": {
       "mean_seconds": 9.129677452818305,
       "median_seconds": 7.0,
@@ -104,6 +108,10 @@
     "backwards_steps": 0,
     "duplicate_timestamps": 14755,
     "zero_time_steps": 14755,
+    "time_vs_unix_offset_hours": [
+      0.0,
+      0.0
+    ],
     "dt_stats": {
       "mean_seconds": 7.906469985191936,
       "median_seconds": 7.0,
@@ -190,5 +198,12 @@
         "outliers_above_threshold": 15
       }
     }
+  },
+  "overlap_audit": {
+    "part1_end": "2014-10-01 01:27:07",
+    "part2_start": "2014-06-27 21:57:50",
+    "overlap_start": "2014-06-27 21:57:50",
+    "overlap_end": "2014-10-01 01:27:07",
+    "overlap_note": "Part 1 records missing sub-meters as 0, Part 2 records missing sub-meters as NaN. Transitioning at Part 2 start preserves explicit missingness metadata."
   }
 }
