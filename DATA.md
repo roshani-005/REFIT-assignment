@@ -9,14 +9,15 @@ This document provides a comprehensive audit of the raw electrical load measurem
 The raw dataset for House 1 is divided into two sequential iterations reflecting changes in the data collection infrastructure:
 * **`RAW_House1_Part1.csv`**: Covers **2013-10-09 14:06:17** to **2014-10-01 01:27:07** (4,377,877 rows). In this iteration, unavailable/unresponsive sub-meter sensors were recorded as `0`.
 * **`RAW_House1_Part2.csv`**: Covers **2014-06-27 21:57:50** to **2015-07-10 11:56:32** (4,140,886 rows). In this iteration, unavailable sensors were properly recorded as `NaN` to distinguish non-operational sensors from true zero power consumption.
-* **Overlap Period**: Between **27 June 2014** and **01 October 2014**, both files record measurements concurrently. Our pipeline resolves this by using Part 1 prior to `2014-06-27 21:57:50` and transitioning cleanly to Part 2 thereafter to exploit explicit `NaN` values.
+* **Overlap Period**: Between **2014-06-27 21:57:50** and **2014-10-01 01:27:07** (95.1 days), both files record measurements concurrently. Our pipeline resolves this by using Part 1 prior to `2014-06-27 21:57:50` and transitioning cleanly to Part 2 thereafter to exploit explicit `NaN` values.
 
 ---
 
 ## 3. Data Quality Findings & Anomalies
 
 ### 3.1. Timestamp Parsing & Monotonicity
-* **Timestamp Format**: Datetimes are formatted as `%Y-%m-%d %H:%M:%S` alongside Unix epoch timestamps in UTC. All timestamps parsed successfully with zero NaT values.
+* **Timestamp Format**: Datetimes are formatted as `%Y-%m-%d %H:%M:%S` alongside Unix epoch timestamps.
+* **Time vs Unix Offset Audit**: Verified that `DateTime - Unix` offset is strictly 0.0 hours throughout both Part 1 and Part 2, confirming consistent UTC timestamps without daylight saving shifts.
 * **Monotonicity**:
   * In `Part 1`, **1 backwards step** was identified where the sensor clock buffered and transmitted out of sequence.
   * In `Part 2`, timestamps were strictly monotonically non-decreasing (0 backwards steps).
@@ -50,7 +51,7 @@ The telemetry uses an event-based / periodic polling mechanism nominally reporti
 Electrical domestic wiring in the UK operates on single-phase 230V/240V AC. Standard ring mains are protected by 32A breakers (~7.4 kW), with standard 13A wall sockets (~3.1 kW). The main household service fuse is typically 60A–100A (~14 kW to 23 kW).
 Analysis of raw sub-meters and aggregate load revealed clear transmission and register overflow errors:
 * **Appliance 9**: Max value recorded was **65,535 W**. This is precisely $2^{16} - 1$, representing a classic 16-bit unsigned integer sensor error code.
-* **Appliance 1, 2, 4, 7, 8**: Recorded spikes between **65,549 W** and **98,301 W** (physically impossible for standard appliances).
+* **Appliance 1, 2, 4, 7, 8**: Recorded spikes between **65,549 W** and **98,301 W** (physically impossible for standard domestic appliances).
 * **Aggregate Load**: Recorded spikes up to **29,159 W** (exceeding residential main service entrance capacity).
 * **Negative Power**: No negative values were recorded ($P \ge 0\text{ W}$ across all channels).
 
@@ -70,30 +71,32 @@ The cleaning pipeline (`src/data_cleaning.py`) performs the following sequential
      * Whole-home Aggregate $> 15{,}000\text{ W}$
      * Individual Appliance Monitors (IAMs) $> 4{,}000\text{ W}$
      * Values $< 0\text{ W}$
-4. **Duplicate Deduplication (Stated Rule)**:
-   * **Rule**: Concurrent readings sharing the exact same timestamp second are aggregated via the arithmetic **`mean()`**. This averages concurrent sub-second state transitions and avoids discarding valid power measurements.
-   * **Impact**: Deduplication reduced 7,260,898 merged raw records to **6,912,212 unique 1-second timestamps** (348,686 duplicate records resolved).
+4. **Duplicate Deduplication**:
+   * Concurrent readings sharing the exact same timestamp second are aggregated via arithmetic **`mean()`**. This averages concurrent sub-second state transitions and avoids discarding valid power measurements.
+   * Deduplication reduced 7,260,898 merged raw records to **6,912,212 unique 1-second timestamps** (348,686 duplicate records resolved).
 5. **Uniform 1-Minute Resampling**:
    * Resampled to a regular 1-minute grid (`'1min'`) using mean aggregation:
      $$\bar{P}_{1\text{min}} = \frac{1}{N} \sum_{i=1}^N P(t_i)$$
    * Total 1-minute intervals produced across the 639-day window: **920,031 minutes**.
-6. **Gap Handling & Outage Flagging Policy**:
-   * **Short Gaps ($\le 3$ minutes)**: Filled via linear time-weighted interpolation. Brief sensor packet drops (1–2 missing cycles) represent continuous appliance operation and can be safely bridged without distorting energy metrics.
-   * **Long Outages ($> 3$ minutes)**: **Strictly flagged as outages and left as `NaN`** (along with a boolean column `is_outage = True`).
-   * **Justification**: Blindly forward-filling or interpolating gaps of hours or days creates fictitious energy consumption (e.g. assuming a 2 kW heater remained on during a 40-day internet outage), introducing catastrophic bias into utility load profiling.
-   * **Outage Statistics**: 117,696 minutes (**12.79%** of the timeline) were flagged as genuine outages and unfillable gaps.
+6. **Strict Gap Handling & Outage Flagging Policy**:
+   * **Flawed Approach Replaced**: Standard `series.interpolate(limit=N)` was rejected because pandas interpolates the first $N$ minutes of an arbitrarily long outage (e.g. turning the first 3 minutes of a 40-day outage into false data).
+   * **True Gap Filling Implementation**: We implemented `fill_short_gaps(series, max_gap=3)` which evaluates the *entire length* of contiguous missing blocks. Only blocks of total length $\le 3$ minutes are linearly interpolated; blocks $> 3$ minutes are left strictly untouched as `NaN`.
+   * **Outage Masking**: `compute_outage_mask(series, max_gap=3)` evaluates original NaN blocks prior to interpolation. Contiguous gaps $> 3$ minutes are flagged in a boolean column `is_outage = True`.
+   * **Outage Statistics**: Exactly **118,959 minutes** (**12.93%** of the timeline) were flagged as genuine outages and unfillable gaps.
 
 ---
 
 ## 5. Visual Validation (Before vs. After Cleaning)
 The cleaning pipeline output was visually validated over a 3-day representative window (`2013-11-15` to `2013-11-18`) in `output/figures/sec1_raw_vs_cleaned.png`:
-* **Aggregate Load**: Shows smooth regular 1-minute load profiles without high-frequency sensor jitter or false spikes.
-* **Appliance 1 (Fridge)**: Regular cyclic compressor pulses (~80–120 W, 20-minute duty cycles) are cleanly preserved on the 1-minute grid.
-* **Appliance 5 (Washing Machine)**: The distinctive multi-stage wash cycle (heating spike, agitation pulses, spin bursts) maintains its exact shape and energy area without temporal distortion.
+* **Before Cleaning**: The raw uncleaned trace displays raw unclipped measurements, directly exposing sensor register overflows and erratic bursts.
+* **After Cleaning**:
+  * **Aggregate Load**: Shows smooth regular 1-minute load profiles without high-frequency sensor jitter or false spikes.
+  * **Appliance 1 (Fridge)**: Regular cyclic compressor pulses (~80–120 W, 20-minute duty cycles) are cleanly preserved on the 1-minute grid.
+  * **Appliance 5 (Washing Machine)**: The distinctive multi-stage wash cycle maintains its exact shape and energy area without temporal distortion.
 
 ---
 
 ## 6. Remaining Data Concerns & Limitations
-1. **Unmonitored Baseload**: The 9 IAM channels only monitor a subset of home appliances. Unmetered circuits (lighting, cooking hobs, electric showers, small electronics) remain embedded in the aggregate signal, creating background noise for NILM models.
+1. **Unmonitored Baseload**: The 9 IAM channels only monitor a subset of home appliances. Unmetered circuits (lighting, cooking hobs, electric showers, immersion heaters) remain embedded in the aggregate signal, creating background noise for NILM models.
 2. **Missing Sub-meter Metadata in Part 1**: Because Part 1 set unavailable sub-meters to 0 rather than NaN, cold periods where a sensor was unplugged cannot be distinguished from a switched-off appliance prior to June 2014.
 3. **Single Active Power Measurement**: The dataset records only real active power ($P$ in Watts). The lack of reactive power ($Q$ in VAR), apparent power ($S$), or power factor limits the ability to distinguish pure resistive heaters (kettles) from inductive motor loads (washers) of identical wattage.
