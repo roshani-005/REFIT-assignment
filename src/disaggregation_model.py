@@ -646,5 +646,9 @@ def main():
     print("=======================================================")
 
 
+# Backward compatibility alias
+train_and_evaluate = main
+
+
 if __name__ == "__main__":
     main()
