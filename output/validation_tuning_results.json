@@ -1,0 +1,180 @@
+{
+  "sampling_strategy_comparison": {
+    "subsample_25_pct": {
+      "mae_overall_w": 16.56,
+      "mae_active_w": 442.86,
+      "rmse_w": 126.84,
+      "precision": 0.1886,
+      "recall": 0.9037,
+      "specificity": 0.9261,
+      "f1_score": 0.3121,
+      "confusion_matrix": {
+        "tn": 113393,
+        "fp": 9045,
+        "fn": 224,
+        "tp": 2103
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 32.71,
+      "signed_energy_bias_kwh": 1.64,
+      "rete_energy_error_pct": 5.29
+    },
+    "class_weights_5x": {
+      "mae_overall_w": 16.29,
+      "mae_active_w": 456.01,
+      "rmse_w": 130.09,
+      "precision": 0.1812,
+      "recall": 0.8964,
+      "specificity": 0.923,
+      "f1_score": 0.3015,
+      "confusion_matrix": {
+        "tn": 113012,
+        "fp": 9426,
+        "fn": 241,
+        "tp": 2086
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 30.78,
+      "signed_energy_bias_kwh": -0.29,
+      "rete_energy_error_pct": 0.92
+    },
+    "full_training_data": {
+      "mae_overall_w": 13.06,
+      "mae_active_w": 500.86,
+      "rmse_w": 129.55,
+      "precision": 0.3206,
+      "recall": 0.7241,
+      "specificity": 0.9708,
+      "f1_score": 0.4444,
+      "confusion_matrix": {
+        "tn": 118867,
+        "fp": 3571,
+        "fn": 642,
+        "tp": 1685
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 20.42,
+      "signed_energy_bias_kwh": -10.65,
+      "rete_energy_error_pct": 34.29
+    }
+  },
+  "selected_strategy": "full_training_data",
+  "cutoff_tuning": {
+    "cutoff_0W": {
+      "mae_overall_w": 13.57,
+      "mae_active_w": 500.13,
+      "rmse_w": 129.44,
+      "precision": 0.3206,
+      "recall": 0.7241,
+      "specificity": 0.9708,
+      "f1_score": 0.4444,
+      "confusion_matrix": {
+        "tn": 118867,
+        "fp": 3571,
+        "fn": 642,
+        "tp": 1685
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 21.53,
+      "signed_energy_bias_kwh": -9.54,
+      "rete_energy_error_pct": 30.7
+    },
+    "cutoff_5W": {
+      "mae_overall_w": 13.27,
+      "mae_active_w": 500.22,
+      "rmse_w": 129.44,
+      "precision": 0.3206,
+      "recall": 0.7241,
+      "specificity": 0.9708,
+      "f1_score": 0.4444,
+      "confusion_matrix": {
+        "tn": 118867,
+        "fp": 3571,
+        "fn": 642,
+        "tp": 1685
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 20.91,
+      "signed_energy_bias_kwh": -10.16,
+      "rete_energy_error_pct": 32.69
+    },
+    "cutoff_10W": {
+      "mae_overall_w": 13.06,
+      "mae_active_w": 500.86,
+      "rmse_w": 129.55,
+      "precision": 0.3206,
+      "recall": 0.7241,
+      "specificity": 0.9708,
+      "f1_score": 0.4444,
+      "confusion_matrix": {
+        "tn": 118867,
+        "fp": 3571,
+        "fn": 642,
+        "tp": 1685
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 20.42,
+      "signed_energy_bias_kwh": -10.65,
+      "rete_energy_error_pct": 34.29
+    },
+    "cutoff_15W": {
+      "mae_overall_w": 12.91,
+      "mae_active_w": 501.48,
+      "rmse_w": 129.55,
+      "precision": 0.3206,
+      "recall": 0.7241,
+      "specificity": 0.9708,
+      "f1_score": 0.4444,
+      "confusion_matrix": {
+        "tn": 118867,
+        "fp": 3571,
+        "fn": 642,
+        "tp": 1685
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 20.03,
+      "signed_energy_bias_kwh": -11.04,
+      "rete_energy_error_pct": 35.54
+    },
+    "cutoff_20W": {
+      "mae_overall_w": 12.8,
+      "mae_active_w": 502.43,
+      "rmse_w": 129.56,
+      "precision": 0.3206,
+      "recall": 0.7241,
+      "specificity": 0.9708,
+      "f1_score": 0.4444,
+      "confusion_matrix": {
+        "tn": 118867,
+        "fp": 3571,
+        "fn": 642,
+        "tp": 1685
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 19.72,
+      "signed_energy_bias_kwh": -11.35,
+      "rete_energy_error_pct": 36.54
+    },
+    "cutoff_30W": {
+      "mae_overall_w": 12.65,
+      "mae_active_w": 504.61,
+      "rmse_w": 129.59,
+      "precision": 0.3671,
+      "recall": 0.6356,
+      "specificity": 0.9792,
+      "f1_score": 0.4654,
+      "confusion_matrix": {
+        "tn": 119888,
+        "fp": 2550,
+        "fn": 848,
+        "tp": 1479
+      },
+      "ground_truth_energy_kwh": 31.07,
+      "predicted_energy_kwh": 19.22,
+      "signed_energy_bias_kwh": -11.85,
+      "rete_energy_error_pct": 38.15
+    }
+  },
+  "frozen_cutoff_watts": 30.0,
+  "frozen_active_threshold_watts": 20.0
+}

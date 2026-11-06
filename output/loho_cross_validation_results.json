@@ -1,0 +1,270 @@
+{
+  "House_1": {
+    "test_house": 1,
+    "train_houses": [
+      2,
+      3,
+      20
+    ],
+    "test_samples": 770373,
+    "train_time_seconds": 18.5,
+    "model_metrics": {
+      "mae_overall_w": 11.72,
+      "mae_active_w": 426.36,
+      "rmse_w": 104.89,
+      "precision": 0.2149,
+      "recall": 0.5194,
+      "specificity": 0.9678,
+      "f1_score": 0.304,
+      "confusion_matrix": {
+        "tn": 733073,
+        "fp": 24428,
+        "fn": 6186,
+        "tp": 6686
+      },
+      "ground_truth_energy_kwh": 121.41,
+      "predicted_energy_kwh": 90.76,
+      "signed_energy_bias_kwh": -30.65,
+      "rete_energy_error_pct": 25.25
+    },
+    "always_off_metrics": {
+      "mae_overall_w": 9.46,
+      "mae_active_w": 563.99,
+      "rmse_w": 128.97,
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1_score": 0.0,
+      "confusion_matrix": {
+        "tn": 757501,
+        "fp": 0,
+        "fn": 12872,
+        "tp": 0
+      },
+      "ground_truth_energy_kwh": 121.41,
+      "predicted_energy_kwh": 0.0,
+      "signed_energy_bias_kwh": -121.41,
+      "rete_energy_error_pct": 100.0
+    },
+    "profile_baseline_metrics": {
+      "mae_overall_w": 18.75,
+      "mae_active_w": 544.32,
+      "rmse_w": 129.76,
+      "precision": 0.0366,
+      "recall": 0.4494,
+      "specificity": 0.7991,
+      "f1_score": 0.0677,
+      "confusion_matrix": {
+        "tn": 605337,
+        "fp": 152164,
+        "fn": 7087,
+        "tp": 5785
+      },
+      "ground_truth_energy_kwh": 121.41,
+      "predicted_energy_kwh": 128.45,
+      "signed_energy_bias_kwh": 7.05,
+      "rete_energy_error_pct": 5.8
+    }
+  },
+  "House_2": {
+    "test_house": 2,
+    "train_houses": [
+      1,
+      3,
+      20
+    ],
+    "test_samples": 652422,
+    "train_time_seconds": 19.1,
+    "model_metrics": {
+      "mae_overall_w": 24.08,
+      "mae_active_w": 337.43,
+      "rmse_w": 156.47,
+      "precision": 0.2127,
+      "recall": 0.2798,
+      "specificity": 0.9505,
+      "f1_score": 0.2417,
+      "confusion_matrix": {
+        "tn": 591792,
+        "fp": 30845,
+        "fn": 21451,
+        "tp": 8334
+      },
+      "ground_truth_energy_kwh": 192.36,
+      "predicted_energy_kwh": 132.03,
+      "signed_energy_bias_kwh": -60.33,
+      "rete_energy_error_pct": 31.36
+    },
+    "always_off_metrics": {
+      "mae_overall_w": 17.69,
+      "mae_active_w": 385.59,
+      "rmse_w": 170.58,
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1_score": 0.0,
+      "confusion_matrix": {
+        "tn": 622637,
+        "fp": 0,
+        "fn": 29785,
+        "tp": 0
+      },
+      "ground_truth_energy_kwh": 192.36,
+      "predicted_energy_kwh": 0.0,
+      "signed_energy_bias_kwh": -192.36,
+      "rete_energy_error_pct": 100.0
+    },
+    "profile_baseline_metrics": {
+      "mae_overall_w": 23.31,
+      "mae_active_w": 374.71,
+      "rmse_w": 170.2,
+      "precision": 0.0888,
+      "recall": 0.2652,
+      "specificity": 0.8698,
+      "f1_score": 0.133,
+      "confusion_matrix": {
+        "tn": 541544,
+        "fp": 81093,
+        "fn": 21886,
+        "tp": 7899
+      },
+      "ground_truth_energy_kwh": 192.36,
+      "predicted_energy_kwh": 73.95,
+      "signed_energy_bias_kwh": -118.41,
+      "rete_energy_error_pct": 61.56
+    }
+  },
+  "House_3": {
+    "test_house": 3,
+    "train_houses": [
+      1,
+      2,
+      20
+    ],
+    "test_samples": 696834,
+    "train_time_seconds": 15.6,
+    "model_metrics": {
+      "mae_overall_w": 44.4,
+      "mae_active_w": 402.69,
+      "rmse_w": 209.26,
+      "precision": 0.2819,
+      "recall": 0.5037,
+      "specificity": 0.9326,
+      "f1_score": 0.3615,
+      "confusion_matrix": {
+        "tn": 617426,
+        "fp": 44630,
+        "fn": 17261,
+        "tp": 17517
+      },
+      "ground_truth_energy_kwh": 285.59,
+      "predicted_energy_kwh": 392.06,
+      "signed_energy_bias_kwh": 106.47,
+      "rete_energy_error_pct": 37.28
+    },
+    "always_off_metrics": {
+      "mae_overall_w": 24.59,
+      "mae_active_w": 492.05,
+      "rmse_w": 191.77,
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1_score": 0.0,
+      "confusion_matrix": {
+        "tn": 662056,
+        "fp": 0,
+        "fn": 34778,
+        "tp": 0
+      },
+      "ground_truth_energy_kwh": 285.59,
+      "predicted_energy_kwh": 0.0,
+      "signed_energy_bias_kwh": -285.59,
+      "rete_energy_error_pct": 100.0
+    },
+    "profile_baseline_metrics": {
+      "mae_overall_w": 27.14,
+      "mae_active_w": 480.73,
+      "rmse_w": 190.57,
+      "precision": 0.154,
+      "recall": 0.2788,
+      "specificity": 0.9195,
+      "f1_score": 0.1984,
+      "confusion_matrix": {
+        "tn": 608774,
+        "fp": 53282,
+        "fn": 25082,
+        "tp": 9696
+      },
+      "ground_truth_energy_kwh": 285.59,
+      "predicted_energy_kwh": 43.22,
+      "signed_energy_bias_kwh": -242.38,
+      "rete_energy_error_pct": 84.87
+    }
+  },
+  "House_20": {
+    "test_house": 20,
+    "train_houses": [
+      1,
+      2,
+      3
+    ],
+    "test_samples": 618239,
+    "train_time_seconds": 15.5,
+    "model_metrics": {
+      "mae_overall_w": 9.68,
+      "mae_active_w": 231.7,
+      "rmse_w": 89.74,
+      "precision": 0.1972,
+      "recall": 0.2779,
+      "specificity": 0.9725,
+      "f1_score": 0.2307,
+      "confusion_matrix": {
+        "tn": 586981,
+        "fp": 16589,
+        "fn": 10593,
+        "tp": 4076
+      },
+      "ground_truth_energy_kwh": 77.11,
+      "predicted_energy_kwh": 68.29,
+      "signed_energy_bias_kwh": -8.82,
+      "rete_energy_error_pct": 11.44
+    },
+    "always_off_metrics": {
+      "mae_overall_w": 7.48,
+      "mae_active_w": 314.15,
+      "rmse_w": 109.36,
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1_score": 0.0,
+      "confusion_matrix": {
+        "tn": 603570,
+        "fp": 0,
+        "fn": 14669,
+        "tp": 0
+      },
+      "ground_truth_energy_kwh": 77.11,
+      "predicted_energy_kwh": 0.0,
+      "signed_energy_bias_kwh": -77.11,
+      "rete_energy_error_pct": 100.0
+    },
+    "profile_baseline_metrics": {
+      "mae_overall_w": 16.42,
+      "mae_active_w": 279.72,
+      "rmse_w": 109.15,
+      "precision": 0.0743,
+      "recall": 0.7572,
+      "specificity": 0.7708,
+      "f1_score": 0.1354,
+      "confusion_matrix": {
+        "tn": 465253,
+        "fp": 138317,
+        "fn": 3561,
+        "tp": 11108
+      },
+      "ground_truth_energy_kwh": 77.11,
+      "predicted_energy_kwh": 110.42,
+      "signed_energy_bias_kwh": 33.31,
+      "rete_energy_error_pct": 43.19
+    }
+  }
+}
