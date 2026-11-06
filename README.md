@@ -1,7 +1,6 @@
 # REFIT Electrical Load Measurements: Cleaning and Appliance Disaggregation Pipeline
 
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
-
 [![Dataset: REFIT](https://img.shields.io/badge/Dataset-REFIT_Smart_Home-green.svg)](https://pureportal.strath.ac.uk/en/datasets/refit-electrical-load-measurements/)
 
 An end-to-end, reproducible data engineering, exploratory data analysis, and machine learning pipeline for Non-Intrusive Load Monitoring (NILM) appliance disaggregation, developed for the **Flock Energy Data Science Take-Home Assessment**.
