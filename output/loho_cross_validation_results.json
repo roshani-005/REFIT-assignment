@@ -7,25 +7,25 @@
       20
     ],
     "test_samples": 770373,
-    "train_time_seconds": 18.5,
+    "train_time_seconds": 12.1,
     "model_metrics": {
-      "mae_overall_w": 11.72,
-      "mae_active_w": 426.36,
-      "rmse_w": 104.89,
-      "precision": 0.2149,
-      "recall": 0.5194,
-      "specificity": 0.9678,
-      "f1_score": 0.304,
+      "mae_overall_w": 11.61,
+      "mae_active_w": 434.24,
+      "rmse_w": 106.27,
+      "precision": 0.2104,
+      "recall": 0.4822,
+      "specificity": 0.9692,
+      "f1_score": 0.293,
       "confusion_matrix": {
-        "tn": 733073,
-        "fp": 24428,
-        "fn": 6186,
-        "tp": 6686
+        "tn": 734207,
+        "fp": 23294,
+        "fn": 6665,
+        "tp": 6207
       },
       "ground_truth_energy_kwh": 121.41,
-      "predicted_energy_kwh": 90.76,
-      "signed_energy_bias_kwh": -30.65,
-      "rete_energy_error_pct": 25.25
+      "predicted_energy_kwh": 85.7,
+      "signed_energy_bias_kwh": -35.7,
+      "rete_energy_error_pct": 29.41
     },
     "always_off_metrics": {
       "mae_overall_w": 9.46,
@@ -74,25 +74,25 @@
       20
     ],
     "test_samples": 652422,
-    "train_time_seconds": 19.1,
+    "train_time_seconds": 11.7,
     "model_metrics": {
-      "mae_overall_w": 24.08,
-      "mae_active_w": 337.43,
-      "rmse_w": 156.47,
-      "precision": 0.2127,
-      "recall": 0.2798,
-      "specificity": 0.9505,
-      "f1_score": 0.2417,
+      "mae_overall_w": 24.05,
+      "mae_active_w": 336.71,
+      "rmse_w": 155.81,
+      "precision": 0.2169,
+      "recall": 0.2783,
+      "specificity": 0.9519,
+      "f1_score": 0.2438,
       "confusion_matrix": {
-        "tn": 591792,
-        "fp": 30845,
-        "fn": 21451,
-        "tp": 8334
+        "tn": 592709,
+        "fp": 29928,
+        "fn": 21497,
+        "tp": 8288
       },
       "ground_truth_energy_kwh": 192.36,
-      "predicted_energy_kwh": 132.03,
-      "signed_energy_bias_kwh": -60.33,
-      "rete_energy_error_pct": 31.36
+      "predicted_energy_kwh": 132.62,
+      "signed_energy_bias_kwh": -59.75,
+      "rete_energy_error_pct": 31.06
     },
     "always_off_metrics": {
       "mae_overall_w": 17.69,
@@ -141,25 +141,25 @@
       20
     ],
     "test_samples": 696834,
-    "train_time_seconds": 15.6,
+    "train_time_seconds": 11.0,
     "model_metrics": {
-      "mae_overall_w": 44.4,
-      "mae_active_w": 402.69,
-      "rmse_w": 209.26,
-      "precision": 0.2819,
-      "recall": 0.5037,
-      "specificity": 0.9326,
-      "f1_score": 0.3615,
+      "mae_overall_w": 45.13,
+      "mae_active_w": 401.5,
+      "rmse_w": 209.62,
+      "precision": 0.2826,
+      "recall": 0.5378,
+      "specificity": 0.9283,
+      "f1_score": 0.3705,
       "confusion_matrix": {
-        "tn": 617426,
-        "fp": 44630,
-        "fn": 17261,
-        "tp": 17517
+        "tn": 614567,
+        "fp": 47489,
+        "fn": 16073,
+        "tp": 18705
       },
       "ground_truth_energy_kwh": 285.59,
-      "predicted_energy_kwh": 392.06,
-      "signed_energy_bias_kwh": 106.47,
-      "rete_energy_error_pct": 37.28
+      "predicted_energy_kwh": 404.63,
+      "signed_energy_bias_kwh": 119.03,
+      "rete_energy_error_pct": 41.68
     },
     "always_off_metrics": {
       "mae_overall_w": 24.59,
@@ -208,25 +208,25 @@
       3
     ],
     "test_samples": 618239,
-    "train_time_seconds": 15.5,
+    "train_time_seconds": 11.3,
     "model_metrics": {
-      "mae_overall_w": 9.68,
-      "mae_active_w": 231.7,
-      "rmse_w": 89.74,
-      "precision": 0.1972,
-      "recall": 0.2779,
-      "specificity": 0.9725,
-      "f1_score": 0.2307,
+      "mae_overall_w": 9.69,
+      "mae_active_w": 233.83,
+      "rmse_w": 89.82,
+      "precision": 0.1989,
+      "recall": 0.2848,
+      "specificity": 0.9721,
+      "f1_score": 0.2342,
       "confusion_matrix": {
-        "tn": 586981,
-        "fp": 16589,
-        "fn": 10593,
-        "tp": 4076
+        "tn": 586746,
+        "fp": 16824,
+        "fn": 10492,
+        "tp": 4177
       },
       "ground_truth_energy_kwh": 77.11,
-      "predicted_energy_kwh": 68.29,
-      "signed_energy_bias_kwh": -8.82,
-      "rete_energy_error_pct": 11.44
+      "predicted_energy_kwh": 67.33,
+      "signed_energy_bias_kwh": -9.78,
+      "rete_energy_error_pct": 12.68
     },
     "always_off_metrics": {
       "mae_overall_w": 7.48,

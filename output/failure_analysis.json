@@ -1,6 +1,6 @@
 {
-  "false_positive_minutes": 245,
-  "false_negative_minutes": 24,
-  "fp_agg_mean_watts": 2802.6,
-  "fn_agg_mean_watts": 3085.8
+  "false_positive_minutes": 233,
+  "false_negative_minutes": 26,
+  "fp_agg_mean_watts": 2731.2,
+  "fn_agg_mean_watts": 3134.9
 }
