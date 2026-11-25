@@ -46,17 +46,21 @@
 ## 2. Time Management, Planning & Deadlines
 
 ### Q2.1: "How much time did you take to complete this assignment, and how did you structure your schedule?"
-* **HR Intent**: Assesses time estimation, structured planning, and pacing.
+* **HR Intent**: Assesses time estimation, structured planning, and pacing under a tight deadline.
 * **Spoken English Answer**:
-  > *"The assignment took approximately **3 to 4 days of focused engineering—around 25 to 30 hours total**. I treated it like a real production sprint by dividing it into four distinct milestones:*
+  > *"I was allotted a strict **2-day (48-hour) deadline** for this take-home assignment. To deliver an end-to-end, publication-grade solution without compromising on data integrity or testing rigor, I structured the 48 hours into two high-intensity, focused milestones (around 16 to 18 focused engineering hours total):*
   > 
-  > * **Day 1 (Data Ingestion & Integrity)**: Audited the 400 MB raw files, resolved channel metadata mapping across homes, discovered the 3-minute interpolation bug, and wrote unit tests in `pytest`.*
-  > * **Day 2 (EDA & Physics-Informed Cycle Detection)**: Built the 5-rule cycle detector with the 8-minute soak-bridge, extracted 1,536 cycles, and uncovered macro usage patterns (Monday peak and Economy 7).*
-  > * **Day 3 (Feature Engineering & ML Modeling)**: Formulated the 31-minute receptive field, implemented zero-leakage continuous segment splitting, and trained `HistGradientBoostingRegressor` against Always-Off and Profile baselines.*
-  > * **Day 4 (Generalization, Failure Analysis & Reporting)**: Ran Leave-One-House-Out cross-validation, analyzed edge cases (kettle/oven false positives), generated 8 publication-grade figures, and authored utility recommendations.*
+  > * **Day 1: Data Ingestion, Integrity & Physics-Informed EDA (~8-9 hours)**:
+  >   * Audited the 400 MB raw files, mapped CT clamp channels across all 4 homes, and discovered the 3-minute interpolation bug.
+  >   * Built the custom outage engine (`src/utils.py`), verified it with automated `pytest` unit tests, and resampled to 1-minute Parquet.
+  >   * Developed the 5-rule cycle detector with the 8-minute soak-bridge, extracting 1,536 cycles and discovering macro behavioral patterns (Monday morning surge and Economy 7 overnight usage).
+  > * **Day 2: Feature Engineering, ML Disaggregation, Validation & Delivery (~8-9 hours)**:
+  >   * Formulated the 31-minute receptive field ($t-15$ to $t+15$) and enforced strict zero-leakage continuous segment splitting.
+  >   * Selected and trained `HistGradientBoostingRegressor` (leveraging fast CPU training over slow LSTMs to iterate quickly), achieving an Overall MAE of 5.91 Watts and F1 of 0.63.
+  >   * Executed Leave-One-House-Out (LOHO) cross-validation, diagnosed appliance heterogeneity, generated 8 high-resolution figures, and authored utility demand-response recommendations in `Recommendation.md`.*
   > 
-  > *Structuring it chronologically ensured I didn't touch modeling until my data pipeline was mathematically verified."*
-* **Hinglish Takeaway**: 4 din (25-30 hours). Day 1: Data & gap engine, Day 2: EDA & soak bridge, Day 3: ML model & 31-min window, Day 4: LOHO, failure analysis, aur business report.
+  > *Treating the 2 days with strict milestone gates ensured I didn't rush into modeling until my underlying data was mathematically sound."*
+* **Hinglish Takeaway**: Mujhe 2 din (48 hours) ka strict deadline mila tha (total ~16-18 focused hours). Day 1 maine data cleaning, outage engine aur 1,536 cycles detection mein lagaya. Day 2 maine 31-min window ML modeling, LOHO validation, plots aur business recommendations mein lagaya. Fast model (HistGBM) aur Parquet use karke time par high-quality delivery di.
 
 ---
 
